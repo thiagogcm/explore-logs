@@ -17,7 +17,6 @@ import {
   SceneObjectUrlSyncConfig,
   SceneObjectUrlValues,
   SceneVariable,
-  SceneVariableSet,
   VariableDependencyConfig,
 } from '@grafana/scenes';
 import { Box, Stack, Tab, TabsBar, useStyles2 } from '@grafana/ui';
@@ -26,13 +25,12 @@ import { Unsubscribable } from 'rxjs';
 import { reportAppInteraction, USER_EVENTS_ACTIONS, USER_EVENTS_PAGES } from 'services/analytics';
 import { DetectedLabelsResponse, extractParserAndFieldsFromDataFrame } from 'services/fields';
 import { getQueryRunner } from 'services/panel';
-import { buildLokiQuery } from 'services/query';
+import { buildBaseQueryExpression, buildLokiQuery } from 'services/query';
 import { EXPLORATIONS_ROUTE, PLUGIN_ID } from 'services/routing';
 import { getExplorationFor, getLokiDatasource, getUniqueFilters } from 'services/scenes';
 import {
   ALL_VARIABLE_VALUE,
   LEVEL_VARIABLE_VALUE,
-  LOG_STREAM_SELECTOR_EXPR,
   VAR_DATASOURCE,
   VAR_FIELDS,
   VAR_LABELS,
@@ -85,10 +83,7 @@ export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
   public constructor(state: MakeOptional<ServiceSceneState, 'body'>) {
     super({
       body: state.body ?? buildGraphScene(),
-      $variables:
-        state.$variables ??
-        new SceneVariableSet({ variables: [new CustomVariable({ name: VAR_LOGS_FORMAT, value: '' })] }),
-      $data: getQueryRunner(buildLokiQuery(LOG_STREAM_SELECTOR_EXPR)),
+      $variables: state.$variables,
       ...state,
     });
 
@@ -146,6 +141,10 @@ export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
   }
 
   private _onActivate() {
+    this.setState({
+      $data: getQueryRunner(buildLokiQuery(buildBaseQueryExpression(this))),
+    });
+
     if (this.state.actionView === undefined) {
       this.setActionView('logs');
     }
@@ -154,7 +153,7 @@ export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
 
     this.setEmptyFiltersRedirection();
 
-    const dataUnsub = this.state.$data?.subscribeToState(() => {
+    const dataUnsub = sceneGraph.getData(this).subscribeToState(() => {
       this.updateFields();
     });
     if (dataUnsub) {

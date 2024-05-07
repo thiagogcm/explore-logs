@@ -23,15 +23,9 @@ import { Button, DrawStyle, Field, LoadingPlaceholder, StackingMode, useStyles2 
 import { reportAppInteraction, USER_EVENTS_ACTIONS, USER_EVENTS_PAGES } from 'services/analytics';
 import { getLabelValueScene } from 'services/fields';
 import { getQueryRunner, levelOverrides } from 'services/panel';
-import { buildLokiQuery } from 'services/query';
+import { buildBaseQueryExpression, buildLokiQuery } from 'services/query';
 import { getUniqueFilters } from 'services/scenes';
-import {
-  ALL_VARIABLE_VALUE,
-  LOG_STREAM_SELECTOR_EXPR,
-  VAR_FIELDS,
-  VAR_FIELD_GROUP_BY,
-  VAR_LABELS,
-} from 'services/variables';
+import { ALL_VARIABLE_VALUE, VAR_FIELDS, VAR_FIELD_GROUP_BY, VAR_LABELS } from 'services/variables';
 import { ServiceScene } from '../ServiceScene';
 import { AddToFiltersButton } from './AddToFiltersButton';
 import { ByFrameRepeater } from './ByFrameRepeater';
@@ -142,12 +136,14 @@ export class FieldsBreakdownScene extends SceneObjectBase<FieldsBreakdownSceneSt
       blockingMessage: undefined,
     };
 
-    stateUpdate.body = variable.hasAllValue() ? this.buildAllLayout(this.state.fields) : buildNormalLayout(variable);
+    stateUpdate.body = variable.hasAllValue()
+      ? this.buildAllLayout(this, this.state.fields)
+      : buildNormalLayout(this, variable);
 
     this.setState(stateUpdate);
   }
 
-  private buildAllLayout(options: Array<SelectableValue<string>>) {
+  private buildAllLayout(sceneObject: SceneObject, options: Array<SelectableValue<string>>) {
     const children: SceneFlexItemLike[] = [];
 
     for (const option of options) {
@@ -156,7 +152,7 @@ export class FieldsBreakdownScene extends SceneObjectBase<FieldsBreakdownSceneSt
         continue;
       }
 
-      const query = buildLokiQuery(getExpr(optionValue), {
+      const query = buildLokiQuery(getExpr(sceneObject, optionValue), {
         legendFormat: `{{${optionValue}}}`,
         refId: optionValue,
       });
@@ -297,22 +293,24 @@ function isAvgField(field: string) {
   return avgFields.includes(field);
 }
 
-function getExpr(field: string) {
+function getExpr(sceneObject: SceneObject, field: string) {
   if (isAvgField(field)) {
     return (
-      `avg_over_time(${LOG_STREAM_SELECTOR_EXPR} | unwrap ` +
+      `avg_over_time(${buildBaseQueryExpression(sceneObject)} | unwrap ` +
       (field === 'duration' ? `duration` : field === 'bytes' ? `bytes` : ``) +
       `(${field}) [$__auto]) by ()`
     );
   }
-  return `sum by (${field}) (count_over_time(${LOG_STREAM_SELECTOR_EXPR} | drop __error__ | ${field}!=""   [$__auto]))`;
+  return `sum by (${field}) (count_over_time(${buildBaseQueryExpression(
+    sceneObject
+  )} | drop __error__ | ${field}!=""   [$__auto]))`;
 }
 
 const GRID_TEMPLATE_COLUMNS = 'repeat(auto-fit, minmax(400px, 1fr))';
 
-function buildNormalLayout(variable: CustomVariable) {
+function buildNormalLayout(sceneObject: SceneObject, variable: CustomVariable) {
   const tagKey = variable.getValueText();
-  const query = buildLokiQuery(getExpr(tagKey), { legendFormat: `{{${tagKey}}}` });
+  const query = buildLokiQuery(getExpr(sceneObject, tagKey), { legendFormat: `{{${tagKey}}}` });
 
   return new LayoutSwitcher({
     $data: getQueryRunner(query),

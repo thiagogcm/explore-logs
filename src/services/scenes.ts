@@ -7,16 +7,10 @@ import {
   SceneObject,
   SceneObjectUrlValues,
 } from '@grafana/scenes';
-import {
-  VAR_DATASOURCE_EXPR,
-  LOG_STREAM_SELECTOR_EXPR,
-  VAR_LABELS,
-  ALL_VARIABLE_VALUE,
-  LEVEL_VARIABLE_VALUE,
-  VAR_FIELDS,
-} from './variables';
+import { VAR_DATASOURCE_EXPR, VAR_LABELS, ALL_VARIABLE_VALUE, LEVEL_VARIABLE_VALUE, VAR_FIELDS } from './variables';
 import { EXPLORATIONS_ROUTE } from './routing';
 import { IndexScene } from 'Components/IndexScene/IndexScene';
+import { buildBaseQueryExpression } from './query';
 
 export function getExplorationFor(model: SceneObject): IndexScene {
   return sceneGraph.getAncestor(model, IndexScene);
@@ -35,7 +29,7 @@ export function getDataSource(exploration: IndexScene) {
 }
 
 export function getQueryExpr(exploration: IndexScene) {
-  return sceneGraph.interpolate(exploration, LOG_STREAM_SELECTOR_EXPR).replace(/\s+/g, ' ');
+  return buildBaseQueryExpression(exploration);
 }
 
 export function getColorByIndex(index: number) {

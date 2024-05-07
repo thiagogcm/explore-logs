@@ -29,6 +29,7 @@ import {
   VAR_LINE_FILTER,
   VAR_PATTERNS,
   explorationDS,
+  VAR_LOGS_FORMAT,
 } from 'services/variables';
 
 import { ServiceScene } from '../ServiceScene/ServiceScene';
@@ -242,6 +243,7 @@ function getVariableSet(initialDS?: string, initialFilters?: AdHocVariableFilter
         value: '',
         hide: VariableHide.hideVariable,
       }),
+      new CustomVariable({ name: VAR_LOGS_FORMAT, value: '', hide: VariableHide.hideVariable }),
       new CustomVariable({ name: VAR_LINE_FILTER, value: '', hide: VariableHide.hideVariable }),
     ],
   });
@@ -305,7 +307,7 @@ function getStyles(theme: GrafanaTheme2) {
         '& > div': {
           // the 'service_name' filter wrapper
           '&:nth-child(2) > div': {
-            gap: 0,
+            'margin-right': theme.spacing(-2),
           },
           // The actual inputs container
           '& > div': {

@@ -24,10 +24,10 @@ import { Button, DrawStyle, Field, LoadingPlaceholder, StackingMode, useStyles2 
 import { reportAppInteraction, USER_EVENTS_ACTIONS, USER_EVENTS_PAGES } from 'services/analytics';
 import { DetectedLabelsResponse, getLabelValueScene } from 'services/fields';
 import { getQueryRunner, levelOverrides } from 'services/panel';
-import { buildLokiQuery } from 'services/query';
+import { buildBaseQueryExpression, buildLokiQuery } from 'services/query';
 import { PLUGIN_ID } from 'services/routing';
 import { getLabelOptions, getLokiDatasource } from 'services/scenes';
-import { ALL_VARIABLE_VALUE, LOG_STREAM_SELECTOR_EXPR, VAR_LABELS, VAR_LABEL_GROUP_BY } from 'services/variables';
+import { ALL_VARIABLE_VALUE, VAR_LABELS, VAR_LABEL_GROUP_BY } from 'services/variables';
 import { AddToFiltersButton } from './AddToFiltersButton';
 import { ByFrameRepeater } from './ByFrameRepeater';
 import { FieldSelector } from './FieldSelector';
@@ -136,7 +136,9 @@ export class LabelBreakdownScene extends SceneObjectBase<LabelBreakdownSceneStat
       blockingMessage: undefined,
     };
 
-    stateUpdate.body = variable.hasAllValue() ? buildLabelsLayout(options) : buildLabelValuesLayout(variable);
+    stateUpdate.body = variable.hasAllValue()
+      ? buildLabelsLayout(this, options)
+      : buildLabelValuesLayout(this, variable);
 
     this.setState(stateUpdate);
   }
@@ -222,7 +224,7 @@ function getStyles(theme: GrafanaTheme2) {
   };
 }
 
-function buildLabelsLayout(options: Array<SelectableValue<string>>) {
+function buildLabelsLayout(sceneObject: SceneObject, options: Array<SelectableValue<string>>) {
   const children: SceneFlexItemLike[] = [];
 
   for (const option of options) {
@@ -235,7 +237,9 @@ function buildLabelsLayout(options: Array<SelectableValue<string>>) {
       new SceneCSSGridItem({
         body: PanelBuilders.timeseries()
           .setTitle(optionValue)
-          .setData(getQueryRunner(buildLokiQuery(getExpr(optionValue), { legendFormat: `{{${optionValue}}}` })))
+          .setData(
+            getQueryRunner(buildLokiQuery(getExpr(sceneObject, optionValue), { legendFormat: `{{${optionValue}}}` }))
+          )
           .setHeaderActions(new SelectLabelAction({ labelName: String(optionValue) }))
           .setCustomFieldConfig('stacking', { mode: StackingMode.Normal })
           .setCustomFieldConfig('fillOpacity', 100)
@@ -270,15 +274,17 @@ function buildLabelsLayout(options: Array<SelectableValue<string>>) {
   });
 }
 
-function getExpr(tagKey: string) {
-  return `sum(count_over_time(${LOG_STREAM_SELECTOR_EXPR} | drop __error__ | ${tagKey}!="" [$__auto])) by (${tagKey})`;
+function getExpr(sceneObject: SceneObject, tagKey: string) {
+  return `sum(count_over_time(${buildBaseQueryExpression(
+    sceneObject
+  )} | drop __error__ | ${tagKey}!="" [$__auto])) by (${tagKey})`;
 }
 
 const GRID_TEMPLATE_COLUMNS = 'repeat(auto-fit, minmax(400px, 1fr))';
 
-function buildLabelValuesLayout(variable: CustomVariable) {
+function buildLabelValuesLayout(sceneObject: SceneObject, variable: CustomVariable) {
   const tagKey = variable.getValueText();
-  const query = buildLokiQuery(getExpr(tagKey), { legendFormat: `{{${tagKey}}}` });
+  const query = buildLokiQuery(getExpr(sceneObject, tagKey), { legendFormat: `{{${tagKey}}}` });
 
   let bodyOpts = PanelBuilders.timeseries();
   bodyOpts = bodyOpts
