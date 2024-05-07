@@ -305,8 +305,9 @@ function getStyles(theme: GrafanaTheme2) {
       '&:first-child': {
         // The wrapper of each filter
         '& > div': {
-          // the 'service_name' filter wrapper
+          // wrapper for all indexed labels
           '&:nth-child(2) > div': {
+            // remove the `gap` from the last label
             'margin-right': theme.spacing(-2),
           },
           // The actual inputs container
