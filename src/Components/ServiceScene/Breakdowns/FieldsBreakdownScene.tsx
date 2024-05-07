@@ -25,7 +25,7 @@ import { getLabelValueScene } from 'services/fields';
 import { getQueryRunner, levelOverrides } from 'services/panel';
 import { buildLokiQuery } from 'services/query';
 import { getUniqueFilters } from 'services/scenes';
-import { ALL_VARIABLE_VALUE, LOG_STREAM_SELECTOR_EXPR, VAR_FIELD_GROUP_BY, VAR_FILTERS } from 'services/variables';
+import { ALL_VARIABLE_VALUE, LOG_STREAM_SELECTOR_EXPR, VAR_FIELD_GROUP_BY, VAR_LABELS } from 'services/variables';
 import { ServiceScene } from '../ServiceScene';
 import { AddToFiltersButton } from './AddToFiltersButton';
 import { ByFrameRepeater } from './ByFrameRepeater';
@@ -47,7 +47,7 @@ export interface FieldsBreakdownSceneState extends SceneObjectState {
 
 export class FieldsBreakdownScene extends SceneObjectBase<FieldsBreakdownSceneState> {
   protected _variableDependency = new VariableDependencyConfig(this, {
-    variableNames: [VAR_FILTERS],
+    variableNames: [VAR_LABELS],
     onReferencedVariableValueChanged: this.onReferencedVariableValueChanged.bind(this),
   });
 

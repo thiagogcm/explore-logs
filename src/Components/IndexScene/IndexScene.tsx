@@ -25,7 +25,7 @@ import { useStyles2 } from '@grafana/ui';
 import {
   VAR_DATASOURCE,
   VAR_FIELDS,
-  VAR_FILTERS,
+  VAR_LABELS,
   VAR_LINE_FILTER,
   VAR_PATTERNS,
   explorationDS,
@@ -187,8 +187,8 @@ function getVariableSet(initialDS?: string, initialFilters?: AdHocVariableFilter
     value,
   }));
 
-  const filterVariable = new AdHocFiltersVariable({
-    name: VAR_FILTERS,
+  const labelsVariable = new AdHocFiltersVariable({
+    name: VAR_LABELS,
     datasource: explorationDS,
     layout: 'vertical',
     label: 'Service',
@@ -198,7 +198,7 @@ function getVariableSet(initialDS?: string, initialFilters?: AdHocVariableFilter
     key: 'adhoc_service_filter',
   });
 
-  filterVariable._getOperators = () => {
+  labelsVariable._getOperators = () => {
     return [
       {
         label: '=',
@@ -235,7 +235,7 @@ function getVariableSet(initialDS?: string, initialFilters?: AdHocVariableFilter
   return new SceneVariableSet({
     variables: [
       dsVariable,
-      filterVariable,
+      labelsVariable,
       fieldsVariable,
       new CustomVariable({
         name: VAR_PATTERNS,
@@ -256,7 +256,7 @@ export function renderLogQLFieldFilters(filters: AdHocVariableFilter[]) {
 }
 
 function renderFilter(filter: AdHocVariableFilter) {
-  return `${filter.key}${filter.operator}\`${filter.value}\``;
+  return `${filter.key}${filter.operator}"${filter.value}"`;
 }
 
 function getStyles(theme: GrafanaTheme2) {

@@ -10,7 +10,7 @@ import {
 import {
   VAR_DATASOURCE_EXPR,
   LOG_STREAM_SELECTOR_EXPR,
-  VAR_FILTERS,
+  VAR_LABELS,
   ALL_VARIABLE_VALUE,
   LEVEL_VARIABLE_VALUE,
   VAR_FIELDS,
@@ -62,7 +62,7 @@ export function getLabelOptions(sceneObject: SceneObject, allOptions: string[]) 
  * Given an array of label, or fields names, return those that are not already present in the filters.
  */
 export function getUniqueFilters(sceneObject: SceneObject, labelNames: string[]) {
-  const labelFilters = sceneGraph.lookupVariable(VAR_FILTERS, sceneObject);
+  const labelFilters = sceneGraph.lookupVariable(VAR_LABELS, sceneObject);
   const fieldsFilters = sceneGraph.lookupVariable(VAR_FIELDS, sceneObject);
   const uniqueFilters: string[] = [];
 
