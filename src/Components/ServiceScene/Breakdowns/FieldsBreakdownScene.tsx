@@ -25,7 +25,13 @@ import { getLabelValueScene } from 'services/fields';
 import { getQueryRunner, levelOverrides } from 'services/panel';
 import { buildLokiQuery } from 'services/query';
 import { getUniqueFilters } from 'services/scenes';
-import { ALL_VARIABLE_VALUE, LOG_STREAM_SELECTOR_EXPR, VAR_FIELD_GROUP_BY, VAR_LABELS } from 'services/variables';
+import {
+  ALL_VARIABLE_VALUE,
+  LOG_STREAM_SELECTOR_EXPR,
+  VAR_FIELDS,
+  VAR_FIELD_GROUP_BY,
+  VAR_LABELS,
+} from 'services/variables';
 import { ServiceScene } from '../ServiceScene';
 import { AddToFiltersButton } from './AddToFiltersButton';
 import { ByFrameRepeater } from './ByFrameRepeater';
@@ -342,7 +348,8 @@ function buildNormalLayout(variable: CustomVariable) {
         }),
         getLayoutChild: getLabelValueScene(
           getLabelValue,
-          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line
+          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line,
+          VAR_FIELDS
         ),
       }),
       new ByFrameRepeater({
@@ -360,7 +367,8 @@ function buildNormalLayout(variable: CustomVariable) {
         }),
         getLayoutChild: getLabelValueScene(
           getLabelValue,
-          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line
+          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line,
+          VAR_FIELDS
         ),
       }),
     ],

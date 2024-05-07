@@ -10,7 +10,7 @@ import {
 import { Button } from '@grafana/ui';
 import { VariableHide } from '@grafana/schema';
 import { addToFavoriteServicesInStorage } from 'services/store';
-import { VAR_DATASOURCE } from 'services/variables';
+import { VAR_DATASOURCE, VAR_LABELS } from 'services/variables';
 import { SERVICE_NAME, StartingPointSelectedEvent } from './ServiceSelectionScene';
 import { reportAppInteraction, USER_EVENTS_ACTIONS, USER_EVENTS_PAGES } from 'services/analytics';
 
@@ -20,7 +20,7 @@ export interface SelectFieldButtonState extends SceneObjectState {
 
 export class SelectFieldButton extends SceneObjectBase<SelectFieldButtonState> {
   public onClick = () => {
-    const variable = sceneGraph.lookupVariable('filters', this);
+    const variable = sceneGraph.lookupVariable(VAR_LABELS, this);
     if (!(variable instanceof AdHocFiltersVariable)) {
       return;
     }

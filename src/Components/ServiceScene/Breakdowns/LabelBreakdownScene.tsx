@@ -325,7 +325,8 @@ function buildLabelValuesLayout(variable: CustomVariable) {
         }),
         getLayoutChild: getLabelValueScene(
           getLabelValue,
-          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line
+          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line,
+          VAR_LABELS
         ),
       }),
       new ByFrameRepeater({
@@ -342,7 +343,8 @@ function buildLabelValuesLayout(variable: CustomVariable) {
         }),
         getLayoutChild: getLabelValueScene(
           getLabelValue,
-          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line
+          query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line,
+          VAR_LABELS
         ),
       }),
     ],
