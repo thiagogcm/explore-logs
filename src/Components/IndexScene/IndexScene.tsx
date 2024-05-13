@@ -308,7 +308,7 @@ function getStyles(theme: GrafanaTheme2) {
           // wrapper for all indexed labels
           '&:nth-child(2) > div': {
             // remove the `gap` from the last label
-            'margin-right': theme.spacing(-2),
+            marginRight: theme.spacing(-2),
           },
           // The actual inputs container
           '& > div': {
