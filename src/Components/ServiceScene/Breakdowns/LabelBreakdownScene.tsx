@@ -27,7 +27,13 @@ import { getQueryRunner, levelOverrides } from 'services/panel';
 import { buildBaseQueryExpression, buildLokiQuery } from 'services/query';
 import { PLUGIN_ID } from 'services/routing';
 import { getLabelOptions, getLokiDatasource } from 'services/scenes';
-import { ALL_VARIABLE_VALUE, VAR_LABELS, VAR_LABEL_GROUP_BY } from 'services/variables';
+import {
+  ALL_VARIABLE_VALUE,
+  LEVEL_VARIABLE_VALUE,
+  VAR_FIELDS,
+  VAR_LABELS,
+  VAR_LABEL_GROUP_BY,
+} from 'services/variables';
 import { AddToFiltersButton } from './AddToFiltersButton';
 import { ByFrameRepeater } from './ByFrameRepeater';
 import { FieldSelector } from './FieldSelector';
@@ -332,7 +338,8 @@ function buildLabelValuesLayout(sceneObject: SceneObject, variable: CustomVariab
         getLayoutChild: getLabelValueScene(
           getLabelValue,
           query.expr.includes('count_over_time') ? DrawStyle.Bars : DrawStyle.Line,
-          VAR_LABELS
+          // `detected_level` is structured metadata, but should showup in the "level breakdown".
+          tagKey === LEVEL_VARIABLE_VALUE ? VAR_FIELDS : VAR_LABELS
         ),
       }),
       new ByFrameRepeater({
