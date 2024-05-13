@@ -16,6 +16,7 @@ import {
   SceneObjectState,
   SceneObjectUrlSyncConfig,
   SceneObjectUrlValues,
+  SceneQueryRunner,
   SceneVariable,
   VariableDependencyConfig,
 } from '@grafana/scenes';
@@ -76,7 +77,7 @@ export interface ServiceSceneState extends SceneObjectState {
 export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['actionView'] });
   protected _variableDependency = new VariableDependencyConfig(this, {
-    variableNames: [VAR_DATASOURCE, VAR_LABELS, VAR_FIELDS, VAR_PATTERNS],
+    variableNames: [VAR_DATASOURCE, VAR_LABELS, VAR_FIELDS, VAR_PATTERNS, VAR_LINE_FILTER],
     onReferencedVariableValueChanged: this.onReferencedVariableValueChanged.bind(this),
   });
 
@@ -167,10 +168,24 @@ export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
       sceneGraph.getTimeRange(this).subscribeToState(() => {
         this.updateLabels();
         this.updatePatterns();
+        this.runQueries();
       })
     );
 
     return () => unsubs.forEach((u) => u.unsubscribe());
+  }
+
+  private runQueries() {
+    try {
+      const queryRunner = sceneGraph.getData(this) || sceneGraph.getAncestor(this, SceneQueryRunner);
+      if (!(queryRunner instanceof SceneQueryRunner)) {
+        return;
+      }
+      queryRunner.setState({ queries: [buildLokiQuery(buildBaseQueryExpression(this))] });
+      queryRunner.runQueries();
+    } catch (e) {
+      console.error('Failed to get query runner', e);
+    }
   }
 
   private onReferencedVariableValueChanged(variable: SceneVariable) {
@@ -185,6 +200,7 @@ export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
     this.updatePatterns();
     this.updateLabels();
     locationService.partial({ actionView: 'logs' });
+    this.runQueries();
   }
 
   private getLogsFormatVariable() {
@@ -219,14 +235,15 @@ export class ServiceScene extends SceneObjectBase<ServiceSceneState> {
       if (frame) {
         const res = extractParserAndFieldsFromDataFrame(frame);
         const detectedFields = res.fields.filter((f) => !disabledFields.includes(f)).sort((a, b) => a.localeCompare(b));
+        const newType = res.type ? ` | ${res.type}` : '';
+        if (variable.getValue() !== newType) {
+          variable.changeValueTo(newType);
+        }
+
         if (JSON.stringify(detectedFields) !== JSON.stringify(this.state.detectedFields)) {
           this.setState({
             detectedFields,
           });
-        }
-        const newType = res.type ? ` | ${res.type}` : '';
-        if (variable.getValue() !== newType) {
-          variable.changeValueTo(newType);
         }
       }
     }
